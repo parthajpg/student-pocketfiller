@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wallet — Student Pocket Filler</title>
+  <meta name="theme-color" content="#0e0c15" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .wd-balance-box {
+      background: rgba(52,211,153,0.07); border: 1px solid rgba(52,211,153,0.18);
+      border-radius: var(--r-md); padding: 14px 16px; margin-bottom: 18px;
+    }
+    .wd-balance-box .wb-lbl { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 4px; }
+    .wd-balance-box .wb-val { font-size: 1.6rem; font-weight: 900; color: var(--green); letter-spacing: -0.5px; }
+  </style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-logo">
+    <div class="logo-icon">🎓</div>
+    <span class="grad-text">Wallet</span>
+  </div>
+  <div class="topnav-wallet" id="nav-wallet">₹0.00</div>
+</nav>
+
+<div class="page-content">
+
+  <!-- Big balance card -->
+  <div class="wallet-hero fade-up">
+    <div class="wallet-label">Available Balance</div>
+    <div class="wallet-amount" id="wallet-main">₹0.00</div>
+    <div class="wallet-pending" id="wallet-pending" style="margin-top:6px">Pending: ₹0.00</div>
+    <button class="btn btn-green" onclick="openWithdraw()"
+      style="margin-top:18px;font-size:0.88rem;padding:11px 22px;min-height:42px;">
+      Withdraw earnings →
+    </button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stat-grid fade-up">
+    <div class="stat-box">
+      <div class="s-icon">✅</div>
+      <div class="s-val" id="st-done">0</div>
+      <div class="s-lbl">Surveys Done</div>
+    </div>
+    <div class="stat-box">
+      <div class="s-icon">💸</div>
+      <div class="s-val" id="st-earned">₹0</div>
+      <div class="s-lbl">Total Earned</div>
+    </div>
+    <div class="stat-box">
+      <div class="s-icon">⏳</div>
+      <div class="s-val" id="st-pending">₹0</div>
+      <div class="s-lbl">Under Review</div>
+    </div>
+    <div class="stat-box">
+      <div class="s-icon">🏦</div>
+      <div class="s-val" id="st-wd">₹0</div>
+      <div class="s-lbl">Withdrawn</div>
+    </div>
+  </div>
+
+  <!-- Transaction list -->
+  <div class="sec-header fade-up">
+    <div class="sec-title">Transaction History</div>
+  </div>
+  <div class="card fade-up" id="tx-list" style="padding:0 20px;">
+    <div class="loader"></div>
+  </div>
+
+</div>
+
+<nav class="bottomnav">
+  <a href="dashboard.html"><span class="nav-icon">🏠</span>Surveys</a>
+  <a href="wallet.html" class="active"><span class="nav-icon">💰</span>Wallet</a>
+  <a href="leaderboard.html"><span class="nav-icon">🏆</span>Board</a>
+  <a href="profile.html">  <span class="nav-icon">👤</span>Profile</a>
+</nav>
+
+<!-- WITHDRAW MODAL -->
+<div class="modal-overlay" id="withdraw-modal">
+  <div class="modal-sheet">
+    <div class="modal-drag-area"><div class="modal-handle"></div></div>
+    <div class="modal-title">Withdraw Earnings</div>
+    <p class="modal-sub">Minimum ₹50. Usually in your UPI within 24 hours.</p>
+    <div class="wd-balance-box">
+      <div class="wb-lbl">Available</div>
+      <div class="wb-val" id="wd-avail">₹0.00</div>
+    </div>
+    <div class="input-group">
+      <label class="input-label">UPI ID</label>
+      <input class="input" id="wd-upi" type="text" placeholder="yourname@upi or yourname@paytm" />
+    </div>
+    <div class="input-group">
+      <label class="input-label">Amount <span style="color:var(--text-faint);font-weight:500;text-transform:none">(min ₹50)</span></label>
+      <input class="input" id="wd-amt" type="number" min="50" placeholder="50" />
+    </div>
+    <button class="btn btn-green btn-full" id="btn-wd" onclick="requestWithdraw()" style="margin-bottom:10px;">Confirm Withdrawal →</button>
+    <button class="btn btn-outline btn-full" onclick="closeModal('withdraw-modal')">Cancel</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="js/app.js"></script>
+<script src="js/useDeviceFingerprint.js"></script>
+<script src="js/api.js"></script>
+<script>
+  let walletData = null;
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    DeviceFingerprint.init();
+    const user = await requireAuth('student');
+    if (!user) return;
+    document.getElementById('wd-upi').value = user.upi_id || '';
+    await loadWallet(user);
+    await loadTransactions();
+  });
+
+  async function loadWallet(user) {
+    try {
+      walletData = await API.wallet();
+      const bal  = formatINR(walletData.wallet_balance);
+      document.getElementById('wallet-main').textContent   = bal;
+      document.getElementById('nav-wallet').textContent    = bal;
+      document.getElementById('wallet-pending').textContent = `Pending: ${formatINR(walletData.pending_amount || 0)} under review`;
+      document.getElementById('st-done').textContent    = walletData.surveys_completed || 0;
+      document.getElementById('st-earned').textContent  = formatINR(walletData.total_earned);
+      document.getElementById('st-pending').textContent = formatINR(walletData.pending_amount || 0);
+      document.getElementById('wd-avail').textContent   = bal;
+    } catch (err) { showToast('Could not load wallet'); }
+  }
+
+  async function loadTransactions() {
+    const el = document.getElementById('tx-list');
+    try {
+      const txs = await API.transactions();
+      const withdrawn = txs.filter(t => t.type === 'debit').reduce((a,t) => a + parseFloat(t.amount), 0);
+      document.getElementById('st-wd').textContent = formatINR(withdrawn);
+
+      if (!txs.length) {
+        el.innerHTML = `<div class="empty-state"><div class="es-icon">📭</div><p>No transactions yet.<br>Complete a survey to start earning!</p></div>`;
+        return;
+      }
+      el.innerHTML = txs.map(t => `
+        <div class="tx-item">
+          <div class="tx-icon" style="background:${t.type==='credit'?'rgba(52,211,153,.1)':'rgba(248,113,113,.1)'}">
+            ${t.type==='credit'?'💰':'🏦'}
+          </div>
+          <div class="tx-info">
+            <div class="tx-name">${t.note || '—'}</div>
+            <div class="tx-date">
+              ${relTime(t.created_at)}
+              <span class="badge badge-${t.status==='approved'?'green':t.status==='reversed'?'red':'yellow'}">${t.status}</span>
+            </div>
+          </div>
+          <div class="tx-amount ${t.type}">${t.type==='credit'?'+':'−'}${formatINR(Math.abs(t.amount))}</div>
+        </div>`).join('');
+    } catch {
+      el.innerHTML = `<div class="empty-state"><div class="es-icon">⚠️</div><p>Could not load transactions.</p></div>`;
+    }
+  }
+
+  function openWithdraw() {
+    document.getElementById('wd-avail').textContent = formatINR(walletData?.wallet_balance || 0);
+    document.getElementById('wd-amt').value = '';
+    document.getElementById('withdraw-modal').classList.add('open');
+  }
+
+  async function requestWithdraw() {
+    const upiId  = document.getElementById('wd-upi').value.trim();
+    const amount = parseFloat(document.getElementById('wd-amt').value);
+    if (!upiId)              { showToast('Please enter your UPI ID'); return; }
+    if (!amount || amount < 50) { showToast('Minimum withdrawal is ₹50'); return; }
+
+    const btn = document.getElementById('btn-wd');
+    btn.disabled = true; btn.textContent = 'Processing…';
+    try {
+      await API.withdraw({ upiId, amount });
+      closeModal('withdraw-modal');
+      showToast('Withdrawal requested — processing in 24 hours 🏦', 4000);
+      const user = await API.me();
+      await loadWallet(user);
+      await loadTransactions();
+    } catch (err) {
+      showToast(err.message);
+    } finally {
+      btn.disabled = false; btn.textContent = 'Confirm Withdrawal →';
+    }
+  }
+
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+</script>
+</body>
+</html>

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile — Student Pocket Filler</title>
+  <meta name="theme-color" content="#0e0c15" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* Profile-specific */
+    .profile-top {
+      display: flex; align-items: center; gap: 16px;
+      margin-bottom: 24px;
+    }
+    .avatar {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: var(--grad);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; font-weight: 900; color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 3px rgba(167,139,250,0.2);
+    }
+    .profile-name    { font-size: 1.2rem; font-weight: 900; letter-spacing: -0.3px; }
+    .profile-college { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+
+    .info-list { }
+    .info-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 13px 0;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-icon { font-size: 1.1rem; width: 26px; text-align: center; flex-shrink: 0; }
+    .info-lbl  { font-size: 0.68rem; color: var(--text-muted); margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .info-val  { font-size: 0.88rem; font-weight: 600; }
+
+    .menu-list { }
+    .menu-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 15px 16px;
+      border-radius: var(--r-lg);
+      background: var(--card); border: 1px solid var(--border);
+      margin-bottom: 8px; cursor: pointer;
+      transition: all 0.18s;
+    }
+    .menu-item:hover { border-color: var(--border-glow); background: var(--card-hover); }
+    .menu-item:active { transform: scale(0.99); }
+    .mi-icon { font-size: 1.3rem; }
+    .mi-body  { flex: 1; }
+    .mi-body strong { display: block; font-size: 0.9rem; font-weight: 700; }
+    .mi-body span   { font-size: 0.74rem; color: var(--text-muted); }
+    .mi-arrow { color: var(--text-faint); font-size: 1.1rem; }
+  </style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-logo">
+    <div class="logo-icon">🎓</div>
+    <span class="grad-text">Profile</span>
+  </div>
+  <div class="topnav-wallet" id="nav-wallet">₹0.00</div>
+</nav>
+
+<div class="page-content">
+
+  <!-- Profile header -->
+  <div class="profile-top fade-up">
+    <div class="avatar" id="p-initials">?</div>
+    <div>
+      <div class="profile-name"    id="p-name">Loading…</div>
+      <div class="profile-college" id="p-college">College</div>
+      <div style="margin-top:8px">
+        <span class="badge badge-purple">🎓 Active Member</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats row -->
+  <div class="stat-grid fade-up" style="margin-bottom:20px">
+    <div class="stat-box">
+      <div class="s-icon">✅</div>
+      <div class="s-val" id="ps-done">0</div>
+      <div class="s-lbl">Completed</div>
+    </div>
+    <div class="stat-box">
+      <div class="s-icon">💰</div>
+      <div class="s-val" id="ps-earn">₹0</div>
+      <div class="s-lbl">Total Earned</div>
+    </div>
+  </div>
+
+  <!-- Info card -->
+  <div class="card fade-up" style="margin-bottom:20px;padding:0 20px">
+    <div class="info-list">
+      <div class="info-row">
+        <div class="info-icon">📧</div>
+        <div><div class="info-lbl">Email</div><div class="info-val" id="p-email">–</div></div>
+      </div>
+      <div class="info-row">
+        <div class="info-icon">📱</div>
+        <div><div class="info-lbl">WhatsApp</div><div class="info-val" id="p-phone">–</div></div>
+      </div>
+      <div class="info-row">
+        <div class="info-icon">💳</div>
+        <div><div class="info-lbl">UPI ID</div><div class="info-val" id="p-upi">Not set</div></div>
+      </div>
+      <div class="info-row">
+        <div class="info-icon">📅</div>
+        <div><div class="info-lbl">Member Since</div><div class="info-val" id="p-joined">–</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Menu -->
+  <div class="sec-header fade-up"><div class="sec-title">Settings</div></div>
+  <div class="menu-list fade-up">
+    <div class="menu-item" onclick="openUpiModal()">
+      <div class="mi-icon">💳</div>
+      <div class="mi-body"><strong>Update UPI ID</strong><span>Set where your earnings land</span></div>
+      <div class="mi-arrow">›</div>
+    </div>
+    <div class="menu-item" onclick="window.location.href='wallet.html'">
+      <div class="mi-icon">📊</div>
+      <div class="mi-body"><strong>Transaction History</strong><span>All earnings and withdrawals</span></div>
+      <div class="mi-arrow">›</div>
+    </div>
+    <div class="menu-item" onclick="shareApp()">
+      <div class="mi-icon">🔗</div>
+      <div class="mi-body"><strong>Invite Friends</strong><span>Share Student Pocket Filler</span></div>
+      <div class="mi-arrow">›</div>
+    </div>
+    <div class="menu-item" onclick="logout()" style="border-color:rgba(248,113,113,0.15)">
+      <div class="mi-icon">⏻</div>
+      <div class="mi-body"><strong style="color:var(--red)">Log Out</strong><span>Sign out of your account</span></div>
+      <div class="mi-arrow">›</div>
+    </div>
+  </div>
+
+</div>
+
+<nav class="bottomnav">
+  <a href="dashboard.html"><span class="nav-icon">🏠</span>Surveys</a>
+  <a href="wallet.html">   <span class="nav-icon">💰</span>Wallet</a>
+  <a href="leaderboard.html"><span class="nav-icon">🏆</span>Board</a>
+  <a href="profile.html" class="active"><span class="nav-icon">👤</span>Profile</a>
+</nav>
+
+<!-- UPI MODAL -->
+<div class="modal-overlay" id="upi-modal">
+  <div class="modal-sheet">
+    <div class="modal-drag-area"><div class="modal-handle"></div></div>
+    <div class="modal-title">Update UPI ID</div>
+    <p class="modal-sub">This is where we send your survey earnings. Double-check it's correct!</p>
+    <div class="input-group">
+      <label class="input-label">UPI ID</label>
+      <input class="input" id="new-upi" type="text" placeholder="yourname@upi or 9876543210@paytm" />
+    </div>
+    <button class="btn btn-grad btn-full" id="btn-upi" onclick="saveUpi()" style="margin-bottom:10px">Save UPI ID ✓</button>
+    <button class="btn btn-outline btn-full" onclick="closeModal('upi-modal')">Cancel</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="js/app.js"></script>
+<script src="js/useDeviceFingerprint.js"></script>
+<script src="js/api.js"></script>
+<script>
+  let currentUser = null;
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    DeviceFingerprint.init();
+    currentUser = await requireAuth('student');
+    if (!currentUser) return;
+    renderProfile(currentUser);
+  });
+
+  function renderProfile(user) {
+    const initials = user.name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase();
+    document.getElementById('p-initials').textContent = initials;
+    document.getElementById('p-name').textContent    = user.name;
+    document.getElementById('p-college').textContent = user.college || 'Student';
+    document.getElementById('p-email').textContent   = user.email;
+    document.getElementById('p-phone').textContent   = user.phone || 'Not set';
+    document.getElementById('p-upi').textContent     = user.upi_id || 'Not set — tap Settings to add';
+    document.getElementById('p-joined').textContent  = fmtDate(user.created_at);
+    document.getElementById('ps-done').textContent   = user.surveys_completed || 0;
+    document.getElementById('ps-earn').textContent   = formatINR(user.total_earned || 0);
+    document.getElementById('nav-wallet').textContent = formatINR(user.wallet_balance || 0);
+  }
+
+  function openUpiModal() {
+    document.getElementById('new-upi').value = currentUser?.upi_id || '';
+    document.getElementById('upi-modal').classList.add('open');
+    setTimeout(() => document.getElementById('new-upi').focus(), 320);
+  }
+
+  async function saveUpi() {
+    const upi = document.getElementById('new-upi').value.trim();
+    if (!upi) { showToast('Please enter a UPI ID'); return; }
+    const btn = document.getElementById('btn-upi');
+    btn.disabled = true; btn.textContent = 'Saving…';
+    try {
+      await API.updateUpi(upi);
+      currentUser.upi_id = upi;
+      renderProfile(currentUser);
+      closeModal('upi-modal');
+      showToast('UPI ID saved! ✅');
+    } catch (err) {
+      showToast(err.message);
+    } finally {
+      btn.disabled = false; btn.textContent = 'Save UPI ID ✓';
+    }
+  }
+
+  function shareApp() {
+    const text = `🎓 I'm earning real ₹ rupees with Student Pocket Filler! Fill surveys, get paid 50%. Join free: ${window.location.origin}`;
+    if (navigator.share) navigator.share({ title: 'Student Pocket Filler', text, url: window.location.origin });
+    else navigator.clipboard.writeText(text).then(() => showToast('Link copied — share it! 🔗'));
+  }
+
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+</script>
+</body>
+</html>

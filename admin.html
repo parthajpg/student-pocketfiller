@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel — Student Pocket Filler</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .admin-nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: rgba(13,13,26,.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(239,68,68,.2); }
+    .admin-badge { background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.3); padding: 5px 14px; border-radius: 50px; font-size: .72rem; font-weight: 700; color: #ef4444; }
+    .rev-card { background: var(--grad); border-radius: 22px; padding: 24px 20px; margin-bottom: 18px; position: relative; overflow: hidden; }
+    .rev-card::after { content: '₹'; position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 5rem; font-weight: 900; opacity: .1; }
+    .rev-card .rl { font-size: .75rem; opacity: .8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+    .rev-card .rv { font-size: 2.6rem; font-weight: 900; }
+    .admin-tabs { display: flex; background: var(--card); border-radius: 14px; padding: 4px; margin-bottom: 18px; }
+    .admin-tab { flex: 1; padding: 10px 6px; border: none; background: transparent; border-radius: 10px; font-size: .78rem; font-weight: 700; color: var(--text-muted); cursor: pointer; font-family: 'Inter', sans-serif; transition: all .2s; }
+    .admin-tab.active { background: var(--grad); color: #fff; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .req-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 16px 18px; margin-bottom: 12px; }
+    .req-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .req-name { font-size: 1rem; font-weight: 700; }
+    .req-meta { font-size: .75rem; color: var(--text-muted); margin-bottom: 10px; line-height: 1.8; }
+    .req-code { background: rgba(139,92,246,.1); border: 1px solid var(--border-glow); border-radius: 10px; padding: 10px 14px; font-family: monospace; font-size: 1rem; font-weight: 700; letter-spacing: 3px; color: var(--accent); margin-bottom: 12px; word-break: break-all; }
+    .req-actions { display: flex; gap: 8px; }
+    .btn-approve { flex: 1; padding: 11px; background: var(--green); border: none; border-radius: 10px; color: #fff; font-size: .84rem; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; min-height: 44px; }
+    .btn-approve:disabled { opacity: .6; cursor: not-allowed; }
+    .btn-reject  { flex: 1; padding: 11px; background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.3); border-radius: 10px; color: var(--red); font-size: .84rem; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; min-height: 44px; }
+    .btn-reject:disabled { opacity: .6; cursor: not-allowed; }
+    .loader { display: flex; justify-content: center; padding: 40px; }
+    .loader::after { content: ''; width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
+  </style>
+</head>
+<body>
+
+<nav class="admin-nav">
+  <div style="font-size:1.1rem;font-weight:900;">🔐 <span class="grad-text">Admin</span></div>
+  <span class="admin-badge">🛡 ADMIN</span>
+  <button onclick="logout()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.2rem;" title="Logout">⏻</button>
+</nav>
+
+<div class="page-content" style="padding-bottom:40px;">
+
+  <!-- REVENUE CARD -->
+  <div class="rev-card fade-up">
+    <div class="rl">Platform Revenue (Your 50%)</div>
+    <div class="rv" id="a-revenue">₹0.00</div>
+    <div style="font-size:.8rem;opacity:.75;margin-top:4px;" id="a-rev-sub">from 0 verified surveys</div>
+  </div>
+
+  <div class="stat-grid fade-up" style="margin-bottom:18px;">
+    <div class="stat-box"><div class="s-icon">👥</div><div class="s-val" id="a-users">0</div><div class="s-lbl">Total Users</div></div>
+    <div class="stat-box"><div class="s-icon">⏳</div><div class="s-val" id="a-pending">0</div><div class="s-lbl">Pending Codes</div></div>
+    <div class="stat-box"><div class="s-icon">💸</div><div class="s-val" id="a-wdp">0</div><div class="s-lbl">Withdrawals</div></div>
+    <div class="stat-box"><div class="s-icon">✅</div><div class="s-val" id="a-approved">0</div><div class="s-lbl">Approved</div></div>
+  </div>
+
+  <div class="admin-tabs fade-up">
+    <button class="admin-tab active" id="atab-codes"       onclick="switchTab('codes')">📋 Codes</button>
+    <button class="admin-tab"       id="atab-withdrawals"  onclick="switchTab('withdrawals')">🏦 Withdrawals</button>
+    <button class="admin-tab"       id="atab-users"        onclick="switchTab('users')">👥 Users</button>
+  </div>
+
+  <div class="panel active" id="panel-codes">
+    <div class="sec-header"><div class="sec-title">Survey Code Submissions</div><div class="sec-link" onclick="loadAll()">↻ Refresh</div></div>
+    <div id="codes-list"><div class="loader"></div></div>
+  </div>
+
+  <div class="panel" id="panel-withdrawals">
+    <div class="sec-header"><div class="sec-title">Withdrawal Requests</div></div>
+    <div id="wd-list"><div class="loader"></div></div>
+  </div>
+
+  <div class="panel" id="panel-users">
+    <div class="sec-header"><div class="sec-title">All Registered Students</div></div>
+    <div id="users-list"><div class="loader"></div></div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="js/app.js"></script>
+<script src="js/api.js"></script>
+<script>
+  let activeTab = 'codes';
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    await requireAuth('admin');
+    await loadAll();
+  });
+
+  async function loadAll() {
+    await Promise.all([ loadDashboard(), loadCodes(), loadWithdrawals(), loadUsers() ]);
+  }
+
+  async function loadDashboard() {
+    try {
+      const d = await API.adminDashboard();
+      document.getElementById('a-revenue').textContent  = formatINR(d.platformRevenue);
+      document.getElementById('a-rev-sub').textContent  = `from ${d.approvedSurveys} verified surveys`;
+      document.getElementById('a-users').textContent    = d.totalUsers;
+      document.getElementById('a-pending').textContent  = d.pendingCodes;
+      document.getElementById('a-wdp').textContent      = d.pendingWithdrawals;
+      document.getElementById('a-approved').textContent = d.approvedSurveys;
+    } catch {}
+  }
+
+  async function loadCodes() {
+    const el = document.getElementById('codes-list');
+    try {
+      const codes = await API.adminCodes('pending');
+      if (!codes.length) {
+        el.innerHTML = `<div class="empty-state"><div class="es-icon">✅</div><p>No pending codes. All caught up!</p></div>`;
+        return;
+      }
+      el.innerHTML = codes.map(c => `
+        <div class="req-card" id="card-${c.id}">
+          <div class="req-header">
+            <div class="req-name">${c.user_name}</div>
+            <span class="badge badge-yellow">⏳ Pending</span>
+          </div>
+          <div class="req-meta">
+            📋 Survey: <strong>${c.survey_name}</strong> (${c.survey_type})<br>
+            📱 WhatsApp: <strong>${c.user_phone || 'N/A'}</strong><br>
+            📧 Email: <strong>${c.user_email}</strong><br>
+            💰 Earn: <strong style="color:var(--green)">₹${parseFloat(c.amount_inr).toFixed(2)}</strong><br>
+            🕐 Submitted: ${relTime(c.submitted_at)}
+          </div>
+          <div class="req-code">${c.completion_code}</div>
+          <div class="req-actions">
+            <button class="btn-approve" id="abtn-${c.id}" onclick="approveCode('${c.id}')">✅ Approve & Pay</button>
+            <button class="btn-reject"  id="rbtn-${c.id}" onclick="rejectCode('${c.id}')">❌ Reject</button>
+          </div>
+        </div>`).join('');
+    } catch (err) {
+      el.innerHTML = `<div class="empty-state"><div class="es-icon">⚠️</div><p>${err.message}</p></div>`;
+    }
+  }
+
+  async function loadWithdrawals() {
+    const el = document.getElementById('wd-list');
+    try {
+      const wds = await API.adminWithdrawals();
+      if (!wds.length) {
+        el.innerHTML = `<div class="empty-state"><div class="es-icon">💤</div><p>No withdrawal requests yet.</p></div>`;
+        return;
+      }
+      el.innerHTML = wds.map(w => `
+        <div class="req-card">
+          <div class="req-header">
+            <div class="req-name">${w.user_name}</div>
+            <span class="badge badge-${w.status==='pending'?'yellow':w.status==='paid'?'green':'red'}">${w.status==='pending'?'⏳':w.status==='paid'?'✅':'❌'} ${w.status}</span>
+          </div>
+          <div class="req-meta">
+            💳 UPI: <strong>${w.upi_id}</strong><br>
+            📱 WhatsApp: <strong>${w.user_phone || 'N/A'}</strong><br>
+            💵 Amount: <strong style="color:var(--green)">₹${parseFloat(w.amount).toFixed(2)}</strong><br>
+            🕐 Requested: ${relTime(w.requested_at)}
+          </div>
+          ${w.status === 'pending' ? `
+          <div class="req-actions">
+            <button class="btn-approve" id="paybtn-${w.id}" onclick="markPaid('${w.id}')">✅ Mark as Paid</button>
+            <button class="btn-reject"  id="rewdbtn-${w.id}" onclick="rejectWd('${w.id}')">↩ Reject & Refund</button>
+          </div>` : ''}
+        </div>`).join('');
+    } catch (err) {
+      el.innerHTML = `<div class="empty-state"><div class="es-icon">⚠️</div><p>${err.message}</p></div>`;
+    }
+  }
+
+  async function loadUsers() {
+    const el = document.getElementById('users-list');
+    try {
+      const users = await API.adminUsers();
+      if (!users.length) {
+        el.innerHTML = `<div class="empty-state"><div class="es-icon">👤</div><p>No students registered yet.</p></div>`;
+        return;
+      }
+      el.innerHTML = users.map(u => `
+        <div class="req-card">
+          <div class="req-header">
+            <div class="req-name">${u.name}</div>
+            <span class="badge badge-purple">🎓 Student</span>
+          </div>
+          <div class="req-meta">
+            📧 ${u.email}<br>
+            📱 ${u.phone || 'N/A'}<br>
+            🏫 ${u.college || 'N/A'}<br>
+            💳 UPI: ${u.upi_id || 'Not set'}<br>
+            💰 Wallet: <strong style="color:var(--green)">${formatINR(u.wallet_balance)}</strong> | Total Earned: ${formatINR(u.total_earned)}<br>
+            ✅ Surveys: ${u.surveys_completed} | Joined: ${relTime(u.created_at)}
+          </div>
+        </div>`).join('');
+    } catch (err) {
+      el.innerHTML = `<div class="empty-state"><div class="es-icon">⚠️</div><p>${err.message}</p></div>`;
+    }
+  }
+
+  function switchTab(tab) {
+    activeTab = tab;
+    ['codes','withdrawals','users'].forEach(t => {
+      document.getElementById('panel-' + t).classList.toggle('active', t === tab);
+      document.getElementById('atab-'  + t).classList.toggle('active', t === tab);
+    });
+  }
+
+  async function approveCode(id) {
+    const ab = document.getElementById('abtn-' + id);
+    const rb = document.getElementById('rbtn-' + id);
+    ab.disabled = rb.disabled = true;
+    ab.textContent = 'Approving…';
+    try {
+      const res = await API.approveCode(id);
+      showToast('✅ ' + res.message, 4000);
+      document.getElementById('card-' + id)?.remove();
+      await loadDashboard();
+    } catch (err) {
+      showToast(err.message + ' ❌');
+      ab.disabled = rb.disabled = false;
+      ab.textContent = '✅ Approve & Pay';
+    }
+  }
+
+  async function rejectCode(id) {
+    if (!confirm('Reject this code submission?')) return;
+    const ab = document.getElementById('abtn-' + id);
+    const rb = document.getElementById('rbtn-' + id);
+    ab.disabled = rb.disabled = true;
+    rb.textContent = 'Rejecting…';
+    try {
+      await API.rejectCode(id);
+      showToast('❌ Code rejected.');
+      document.getElementById('card-' + id)?.remove();
+      await loadDashboard();
+    } catch (err) {
+      showToast(err.message + ' ❌');
+      ab.disabled = rb.disabled = false;
+      rb.textContent = '❌ Reject';
+    }
+  }
+
+  async function markPaid(id) {
+    const btn = document.getElementById('paybtn-' + id);
+    btn.disabled = true; btn.textContent = 'Marking…';
+    try {
+      await API.markPaid(id);
+      showToast('✅ Marked as paid!');
+      await loadWithdrawals();
+      await loadDashboard();
+    } catch (err) {
+      showToast(err.message + ' ❌');
+      btn.disabled = false; btn.textContent = '✅ Mark as Paid';
+    }
+  }
+
+  async function rejectWd(id) {
+    if (!confirm('Reject and refund this withdrawal to the student wallet?')) return;
+    const btn = document.getElementById('rewdbtn-' + id);
+    btn.disabled = true; btn.textContent = 'Refunding…';
+    try {
+      await API.rejectWithdrawal(id);
+      showToast('↩ Withdrawal rejected and amount refunded to student.');
+      await loadWithdrawals();
+      await loadDashboard();
+    } catch (err) {
+      showToast(err.message + ' ❌');
+      btn.disabled = false; btn.textContent = '↩ Reject & Refund';
+    }
+  }
+</script>
+</body>
+</html>

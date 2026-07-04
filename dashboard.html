@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Surveys — Student Pocket Filler</title>
+  <meta name="theme-color" content="#0e0c15" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ── Dashboard-specific ── */
+    .greeting-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .greeting-text { font-size: 1.35rem; font-weight: 900; letter-spacing: -0.4px; }
+    .greeting-sub  { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+
+    .balance-chip {
+      display: flex; flex-direction: column; align-items: flex-end;
+      background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.18);
+      border-radius: var(--r-md); padding: 10px 14px; cursor: pointer;
+      transition: all 0.18s;
+    }
+    .balance-chip:hover { background: rgba(52,211,153,0.14); }
+    .balance-chip .bc-lbl { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+    .balance-chip .bc-val { font-size: 1.1rem; font-weight: 900; color: var(--green); letter-spacing: -0.3px; }
+
+    .mega-notice {
+      background: rgba(251,146,60,0.07);
+      border: 1px solid rgba(251,146,60,0.18);
+      border-radius: var(--r-md);
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      font-size: 0.78rem;
+      color: var(--orange);
+      display: flex; gap: 10px; align-items: flex-start;
+      line-height: 1.55;
+    }
+    .mega-notice-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+    /* Survey card time badge */
+    .time-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--text-faint); display: inline-block;
+    }
+
+    /* Code modal specific */
+    .code-survey-chip {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--r-md); padding: 13px 15px; margin-bottom: 18px;
+    }
+    .code-survey-chip .csc-label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .code-survey-chip .csc-name  { font-weight: 700; font-size: 0.96rem; }
+    .code-survey-chip .csc-earn  { font-size: 1.1rem; font-weight: 900; color: var(--green); margin-top: 3px; }
+
+    /* Withdraw mini */
+    .wd-balance-box {
+      background: rgba(52,211,153,0.07); border: 1px solid rgba(52,211,153,0.18);
+      border-radius: var(--r-md); padding: 14px 16px; margin-bottom: 18px;
+    }
+    .wd-balance-box .wb-lbl { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 4px; }
+    .wd-balance-box .wb-val { font-size: 1.6rem; font-weight: 900; color: var(--green); letter-spacing: -0.5px; }
+  </style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-logo">
+    <div class="logo-icon">🎓</div>
+    <span class="grad-text">SPF</span>
+  </div>
+  <button onclick="logout()" style="background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:1.1rem;padding:4px;" title="Logout" aria-label="Logout">⏻</button>
+</nav>
+
+<div class="page-content">
+
+  <!-- Greeting row -->
+  <div class="greeting-row fade-up">
+    <div>
+      <div class="greeting-text" id="welcome-name">Hey! 👋</div>
+      <div class="greeting-sub">Pick a survey and start earning</div>
+    </div>
+    <div class="balance-chip" onclick="window.location.href='wallet.html'" title="Go to wallet">
+      <div class="bc-lbl">Balance</div>
+      <div class="bc-val" id="wallet-bal">₹0.00</div>
+    </div>
+  </div>
+
+  <!-- Survey type selector -->
+  <div class="type-tabs fade-up">
+    <div class="type-tab active" id="ttab-quick"    onclick="switchType('quick')">
+      <div class="ti">⚡</div><span class="tn">Quick</span><span class="te">₹12–15</span>
+    </div>
+    <div class="type-tab" id="ttab-standard" onclick="switchType('standard')">
+      <div class="ti">💼</div><span class="tn">Standard</span><span class="te">₹50–60</span>
+    </div>
+    <div class="type-tab" id="ttab-mega"     onclick="switchType('mega')">
+      <div class="ti">🏆</div><span class="tn">Mega</span><span class="te">₹131–150</span>
+    </div>
+  </div>
+
+  <!-- Mega warning (hidden by default) -->
+  <div class="mega-notice" id="mega-notice" style="display:none">
+    <div class="mega-notice-icon">⚠️</div>
+    <div>Mega surveys take <strong>25–30 minutes</strong>. Answer slowly and honestly — rushing gets you flagged and the reward reversed.</div>
+  </div>
+
+  <div id="survey-list"><div class="loader"></div></div>
+
+</div>
+
+<nav class="bottomnav">
+  <a href="dashboard.html" class="active"><span class="nav-icon">🏠</span>Surveys</a>
+  <a href="wallet.html">   <span class="nav-icon">💰</span>Wallet</a>
+  <a href="leaderboard.html"><span class="nav-icon">🏆</span>Board</a>
+  <a href="profile.html">  <span class="nav-icon">👤</span>Profile</a>
+</nav>
+
+<!-- CODE SUBMISSION MODAL -->
+<div class="modal-overlay" id="code-modal">
+  <div class="modal-sheet">
+    <div class="modal-drag-area"><div class="modal-handle"></div></div>
+    <div class="modal-title">Submit Completion Code</div>
+    <p class="modal-sub">Paste the code you got after finishing the survey. We'll verify and credit your wallet within 24 hours.</p>
+
+    <div class="code-survey-chip" id="modal-survey-info">
+      <div class="csc-label">Survey</div>
+      <div class="csc-name"  id="modal-sname"></div>
+      <div class="csc-earn"  id="modal-searn"></div>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">Completion Code</label>
+      <input class="input" id="code-val" type="text" placeholder="e.g. CPX-AB1234"
+             maxlength="40" style="text-transform:uppercase;letter-spacing:2px;font-weight:700"
+             onkeydown="if(event.key==='Enter')submitCode()" />
+    </div>
+    <button class="btn btn-grad btn-full" id="btn-submit" onclick="submitCode()" style="margin-bottom:10px;">Submit for Verification ✓</button>
+    <button class="btn btn-outline btn-full" onclick="closeModal('code-modal')">Cancel</button>
+  </div>
+</div>
+
+<!-- WITHDRAW MODAL -->
+<div class="modal-overlay" id="withdraw-modal">
+  <div class="modal-sheet">
+    <div class="modal-drag-area"><div class="modal-handle"></div></div>
+    <div class="modal-title">Withdraw Earnings</div>
+    <p class="modal-sub">Minimum ₹50. Sent to your UPI — usually within 24 hours.</p>
+    <div class="wd-balance-box">
+      <div class="wb-lbl">Available to withdraw</div>
+      <div class="wb-val" id="wd-avail">₹0.00</div>
+    </div>
+    <div class="input-group">
+      <label class="input-label">UPI ID</label>
+      <input class="input" id="wd-upi" type="text" placeholder="yourname@upi" />
+    </div>
+    <div class="input-group">
+      <label class="input-label">Amount <span style="color:var(--text-faint);font-weight:500;text-transform:none">(min ₹50)</span></label>
+      <input class="input" id="wd-amt" type="number" min="50" placeholder="50" />
+    </div>
+    <button class="btn btn-green btn-full" id="btn-wd-confirm" onclick="requestWithdraw()" style="margin-bottom:10px;">Confirm Withdrawal →</button>
+    <button class="btn btn-outline btn-full" onclick="closeModal('withdraw-modal')">Cancel</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="js/app.js"></script>
+<script src="js/useDeviceFingerprint.js"></script>
+<script src="js/api.js"></script>
+<script>
+  let currentUser    = null;
+  let activeType     = 'quick';
+  let selectedSurvey = null;
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    DeviceFingerprint.init();
+    currentUser = await requireAuth('student');
+    if (!currentUser) return;
+    document.getElementById('welcome-name').textContent = `Hey, ${currentUser.name.split(' ')[0]}! 👋`;
+    await refreshWallet();
+    renderSurveys('quick');
+  });
+
+  async function refreshWallet() {
+    try {
+      const data = await API.wallet();
+      currentUser.wallet_balance = data.wallet_balance;
+      const bal = formatINR(data.wallet_balance);
+      document.getElementById('wallet-bal').textContent = bal;
+      document.getElementById('wd-avail').textContent  = bal;
+    } catch { /* keep existing */ }
+  }
+
+  function switchType(type) {
+    activeType = type;
+    ['quick','standard','mega'].forEach(t => {
+      document.getElementById('ttab-' + t).classList.toggle('active', t === type);
+    });
+    const notice = document.getElementById('mega-notice');
+    notice.style.display = type === 'mega' ? 'flex' : 'none';
+    renderSurveys(type);
+  }
+
+  function renderSurveys(type) {
+    const list   = SURVEYS[type];
+    const badges = { quick:'badge-purple', standard:'badge-blue', mega:'badge-orange' };
+    document.getElementById('survey-list').innerHTML = list.map(s => `
+      <div class="survey-card card-hover-lift fade-up" onclick="">
+        <div class="survey-header">
+          <div class="survey-icon ${type}">${s.icon}</div>
+          <div>
+            <div class="survey-name">${s.name}</div>
+            <div class="survey-meta">
+              <span>⏱ ${s.duration}</span>
+              <span class="time-dot"></span>
+              <span class="badge ${badges[type]}">${type}</span>
+            </div>
+          </div>
+        </div>
+        <div class="survey-earnings">
+          <div>
+            <div class="earn-label">Your 50% cut</div>
+            <div class="earn-amount">₹${s.yourINR}</div>
+          </div>
+          <div style="text-align:right">
+            <div class="earn-label">Survey value</div>
+            <div style="font-size:.85rem;font-weight:700;color:var(--text-muted)">₹${s.grossINR}</div>
+          </div>
+        </div>
+        <div class="survey-card-actions">
+          <button class="btn-go" onclick="startSurvey('${s.id}')">Start Survey →</button>
+          <button class="btn-submit-code" onclick="openCodeModal('${s.id}')">📋 Code</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function startSurvey(id) {
+    const url = CPX_CONFIG.getSurveyUrl(currentUser?.id);
+    if (url) { window.open(url, '_blank'); }
+    else { showToast('Survey opening — note your completion code! 📋'); }
+    setTimeout(() => openCodeModal(id), 1200);
+  }
+
+  function openCodeModal(id) {
+    selectedSurvey = getAllSurveys().find(s => s.id === id);
+    if (!selectedSurvey) return;
+    document.getElementById('modal-sname').textContent = selectedSurvey.icon + ' ' + selectedSurvey.name;
+    document.getElementById('modal-searn').textContent = '₹' + selectedSurvey.yourINR + ' your share';
+    document.getElementById('code-val').value = '';
+    document.getElementById('code-modal').classList.add('open');
+    setTimeout(() => document.getElementById('code-val').focus(), 320);
+  }
+
+  async function submitCode() {
+    const code = document.getElementById('code-val').value.trim().toUpperCase();
+    if (!code || code.length < 4) { showToast('Please enter your completion code'); return; }
+
+    const btn = document.getElementById('btn-submit');
+    btn.disabled = true; btn.textContent = 'Submitting…';
+    try {
+      await API.submitCode({
+        surveyId      : selectedSurvey.id,
+        surveyName    : selectedSurvey.name,
+        surveyType    : selectedSurvey.type,
+        completionCode: code,
+        amountInr     : selectedSurvey.yourINR
+      });
+      closeModal('code-modal');
+      showToast('Code submitted! We\'ll verify and pay within 24h ✅', 4000);
+    } catch (err) {
+      showToast(err.message);
+    } finally {
+      btn.disabled = false; btn.textContent = 'Submit for Verification ✓';
+    }
+  }
+
+  function openWithdraw() {
+    document.getElementById('wd-avail').textContent = formatINR(currentUser?.wallet_balance || 0);
+    document.getElementById('wd-upi').value = currentUser?.upi_id || '';
+    document.getElementById('wd-amt').value = '';
+    document.getElementById('withdraw-modal').classList.add('open');
+  }
+
+  async function requestWithdraw() {
+    const upiId  = document.getElementById('wd-upi').value.trim();
+    const amount = parseFloat(document.getElementById('wd-amt').value);
+    if (!upiId)              { showToast('Please enter your UPI ID'); return; }
+    if (!amount || amount < 50) { showToast('Minimum withdrawal is ₹50'); return; }
+
+    const btn = document.getElementById('btn-wd-confirm');
+    btn.disabled = true; btn.textContent = 'Processing…';
+    try {
+      await API.withdraw({ upiId, amount });
+      closeModal('withdraw-modal');
+      showToast('Withdrawal requested! Processing within 24 hours 🏦', 4000);
+      await refreshWallet();
+    } catch (err) {
+      showToast(err.message);
+    } finally {
+      btn.disabled = false; btn.textContent = 'Confirm Withdrawal →';
+    }
+  }
+
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+</script>
+</body>
+</html>

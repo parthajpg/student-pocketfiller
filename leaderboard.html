@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Leaderboard — Student Pocket Filler</title>
+  <meta name="theme-color" content="#0e0c15" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .lb-header {
+      margin-bottom: 20px;
+    }
+    .lb-header h2 {
+      font-size: 1.5rem; font-weight: 900; letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+    .lb-header p { font-size: 0.82rem; color: var(--text-muted); }
+
+    .my-rank-row {
+      display: flex; align-items: center; gap: 14px;
+      background: rgba(167,139,250,0.08);
+      border: 1px solid rgba(167,139,250,0.2);
+      border-radius: var(--r-lg);
+      padding: 14px 16px; margin-bottom: 20px;
+    }
+    .my-rank-badge {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--grad);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; font-weight: 900; flex-shrink: 0;
+    }
+    .mrb-label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .mrb-name  { font-weight: 800; font-size: 1rem; margin: 2px 0; }
+    .mrb-earn  { font-size: 0.8rem; color: var(--green); font-weight: 700; }
+  </style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-logo">
+    <div class="logo-icon">🎓</div>
+    <span class="grad-text">Leaderboard</span>
+  </div>
+  <div class="topnav-wallet" id="nav-wallet">₹0.00</div>
+</nav>
+
+<div class="page-content">
+
+  <div class="lb-header fade-up">
+    <h2>🏆 Top Earners</h2>
+    <p>All-time ranking by total earnings</p>
+  </div>
+
+  <!-- My rank -->
+  <div class="my-rank-row fade-up">
+    <div class="my-rank-badge" id="my-rank">#–</div>
+    <div>
+      <div class="mrb-label">Your Rank</div>
+      <div class="mrb-name" id="my-name">—</div>
+      <div class="mrb-earn" id="my-earned">—</div>
+    </div>
+  </div>
+
+  <div class="sec-header fade-up">
+    <div class="sec-title">Rankings</div>
+  </div>
+
+  <div id="lb-list" class="fade-up"><div class="loader"></div></div>
+
+</div>
+
+<nav class="bottomnav">
+  <a href="dashboard.html"><span class="nav-icon">🏠</span>Surveys</a>
+  <a href="wallet.html">   <span class="nav-icon">💰</span>Wallet</a>
+  <a href="leaderboard.html" class="active"><span class="nav-icon">🏆</span>Board</a>
+  <a href="profile.html">  <span class="nav-icon">👤</span>Profile</a>
+</nav>
+
+<div class="toast" id="toast"></div>
+<script src="js/app.js"></script>
+<script src="js/useDeviceFingerprint.js"></script>
+<script src="js/api.js"></script>
+<script>
+  const COLORS = ['#a78bfa','#60a5fa','#34d399','#fbbf24','#f87171','#06b6d4','#fb923c'];
+  const MEDALS = ['🥇','🥈','🥉'];
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    DeviceFingerprint.init();
+    const user = await requireAuth('student');
+    if (!user) return;
+    document.getElementById('nav-wallet').textContent = formatINR(user.wallet_balance || 0);
+
+    const lb = document.getElementById('lb-list');
+    try {
+      const leaders = await API.leaderboard();
+      const myRank  = leaders.findIndex(u => u.id === user.id) + 1;
+
+      document.getElementById('my-rank').textContent  = myRank ? `#${myRank}` : '–';
+      document.getElementById('my-name').textContent  = user.name;
+      document.getElementById('my-earned').textContent = formatINR(user.total_earned || 0) + ' earned';
+
+      if (!leaders.length) {
+        lb.innerHTML = `<div class="empty-state"><div class="es-icon">👥</div><p>Nobody on the board yet — be the first!</p></div>`;
+        return;
+      }
+
+      lb.innerHTML = leaders.map((u, i) => {
+        const initials = u.name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase();
+        const color    = COLORS[i % COLORS.length];
+        const isMe     = u.id === user.id;
+        return `
+          <div class="lb-item ${isMe ? 'card-glow' : ''}">
+            <div class="lb-rank">${MEDALS[i] || '#'+(i+1)}</div>
+            <div class="lb-avatar" style="background:${color}20;color:${color};border:1.5px solid ${color}40">${initials}</div>
+            <div class="lb-name">
+              <strong>${u.name}${isMe ? ' <span style="font-size:.6rem;color:var(--accent);font-weight:700">YOU</span>' : ''}</strong>
+              <span>${u.college || 'Student'} &middot; ${u.surveys_completed || 0} surveys</span>
+            </div>
+            <div class="lb-earned">${formatINR(u.total_earned)}</div>
+          </div>`;
+      }).join('');
+    } catch {
+      lb.innerHTML = `<div class="empty-state"><div class="es-icon">⚠️</div><p>Could not load leaderboard.</p></div>`;
+    }
+  });
+</script>
+</body>
+</html>

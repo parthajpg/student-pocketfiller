@@ -1,0 +1,51 @@
+# render.yaml — Render deployment blueprint
+# ─────────────────────────────────────────────
+# Run this once to deploy:
+#   1. Push this repo to GitHub
+#   2. Go to https://dashboard.render.com → New → Blueprint
+#   3. Connect your GitHub repo → Render auto-reads this file
+# ─────────────────────────────────────────────
+
+services:
+  # ── Node.js Backend (Web Service) ───────────
+  - type: web
+    name: spf-backend
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: spf-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true          # Render auto-generates a secure random value
+      - key: CPX_APP_ID
+        value: "34184"
+      - key: CPX_HASH_KEY
+        sync: false                  # You set this manually in Render dashboard
+      - key: CPX_SECURE_KEY
+        sync: false
+      - key: FRONTEND_URL
+        sync: false                  # Set to your static site URL after first deploy
+
+  # ── Static Frontend (Static Site) ──────────
+  - type: web
+    name: spf-frontend
+    runtime: static
+    staticPublishPath: .             # serve the root HTML/CSS/JS files
+    buildCommand: ""                 # no build step needed — plain HTML
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html    # SPA-style fallback
+
+databases:
+  # ── PostgreSQL (Free tier) ──────────────────
+  - name: spf-db
+    databaseName: spf_db
+    user: spf_user
+    plan: free

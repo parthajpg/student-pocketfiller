@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Pocket Filler — Earn Real ₹ with Surveys</title>
+  <meta name="description" content="Complete real surveys and earn rupees directly to UPI. Students earn 50% — paid within 24 hours. 100% free." />
+  <meta name="theme-color" content="#0e0c15" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ── Landing-page-specific ─── */
+    .landing-root {
+      min-height : 100vh;
+      display    : flex;
+      flex-direction: column;
+      align-items: center;
+      padding    : 0 0 60px;
+      position   : relative;
+    }
+
+    /* Subtle noise-texture ambient blob */
+    .ambient {
+      position: fixed; top: -20%; left: 50%;
+      transform: translateX(-50%);
+      width: 640px; height: 640px;
+      background: radial-gradient(ellipse at center,
+        rgba(124,58,237,.18) 0%,
+        rgba(96,165,250,.06) 45%,
+        transparent 70%);
+      pointer-events: none;
+      filter: blur(1px);
+    }
+
+    /* ── Header bar ── */
+    .land-header {
+      width: 100%; max-width: 480px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 20px 0;
+      position: relative; z-index: 1;
+    }
+    .land-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 900; font-size: 1rem; letter-spacing: -0.3px;
+    }
+    .land-logo .lico {
+      width: 34px; height: 34px; background: var(--grad);
+      border-radius: 10px; display: flex; align-items: center;
+      justify-content: center; font-size: 1.1rem;
+    }
+    .land-trust {
+      font-size: 0.7rem; color: var(--text-muted); font-weight: 600;
+      background: var(--card); border: 1px solid var(--border);
+      padding: 6px 12px; border-radius: 50px;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      width: 100%; max-width: 480px;
+      padding: 44px 20px 28px;
+      position: relative; z-index: 1;
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.2);
+      color: var(--green); font-size: 0.72rem; font-weight: 700;
+      padding: 5px 12px; border-radius: 50px; margin-bottom: 16px;
+      letter-spacing: 0.3px;
+    }
+    .hero h1 {
+      font-size: clamp(1.85rem, 7vw, 2.6rem);
+      font-weight: 900; letter-spacing: -1px;
+      line-height: 1.12; margin-bottom: 14px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .hero p {
+      font-size: 0.97rem; color: var(--text-muted);
+      line-height: 1.65; margin-bottom: 28px; max-width: 360px;
+    }
+
+    /* Proof bar */
+    .proof-bar {
+      display: flex; gap: 10px;
+      margin-bottom: 32px; flex-wrap: wrap;
+    }
+    .proof-pill {
+      display: flex; align-items: center; gap: 7px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 50px; padding: 9px 16px;
+    }
+    .proof-pill .val { font-size: 1.1rem; font-weight: 900; letter-spacing: -0.3px; }
+    .proof-pill .lbl { font-size: 0.67rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+
+    /* ── Auth card ── */
+    .auth-card {
+      width: 100%; max-width: 480px;
+      padding: 0 16px;
+      position: relative; z-index: 1;
+    }
+    .auth-card-inner {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-2xl);
+      padding: 6px 6px 24px;
+    }
+    .auth-tabs {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 4px; padding: 4px;
+      margin-bottom: 20px;
+    }
+    .auth-tab {
+      padding: 11px; border: none; background: transparent;
+      border-radius: 18px; font-size: 0.9rem; font-weight: 700;
+      color: var(--text-muted); cursor: pointer; transition: all 0.2s;
+      font-family: inherit;
+    }
+    .auth-tab.active { background: var(--bg2); color: var(--text); }
+
+    .auth-body { padding: 0 18px; }
+    .panel     { display: none; }
+    .panel.active { display: block; }
+
+    .form-group { margin-bottom: 14px; }
+    .form-label {
+      display: block; font-size: 0.75rem; font-weight: 700;
+      color: var(--text-muted); margin-bottom: 7px;
+      text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .form-input {
+      width: 100%; padding: 13px 15px;
+      background: var(--bg2); border: 1.5px solid var(--border);
+      border-radius: var(--r-md); color: var(--text);
+      font-size: 0.94rem; font-family: inherit; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s; box-sizing: border-box;
+    }
+    .form-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(167,139,250,0.12);
+    }
+    .form-input::placeholder { color: var(--text-faint); }
+
+    .btn-auth {
+      width: 100%; padding: 15px; background: var(--grad);
+      border: none; border-radius: var(--r-md); color: #fff;
+      font-size: 0.97rem; font-weight: 800; cursor: pointer;
+      transition: all 0.18s; font-family: inherit; min-height: 52px;
+      letter-spacing: -0.2px;
+      box-shadow: 0 4px 24px rgba(124,58,237,0.35);
+      margin-top: 4px;
+    }
+    .btn-auth:hover  { opacity: .9; transform: translateY(-1px); box-shadow: 0 8px 32px rgba(124,58,237,0.45); }
+    .btn-auth:active { transform: scale(0.98); }
+    .btn-auth:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+
+    .auth-switch {
+      text-align: center; color: var(--text-muted);
+      font-size: 0.8rem; margin-top: 14px;
+    }
+    .auth-switch a {
+      color: var(--accent); font-weight: 700; cursor: pointer;
+    }
+
+    /* ── How it works ── */
+    .how-section {
+      width: 100%; max-width: 480px;
+      padding: 28px 20px 0;
+      position: relative; z-index: 1;
+    }
+    .how-label {
+      font-size: 0.7rem; font-weight: 700; color: var(--text-faint);
+      text-transform: uppercase; letter-spacing: 1.2px;
+      margin-bottom: 14px;
+    }
+    .step {
+      display: flex; align-items: flex-start; gap: 14px;
+      margin-bottom: 16px;
+    }
+    .step-num {
+      width: 28px; height: 28px; flex-shrink: 0;
+      background: rgba(167,139,250,0.12); border: 1px solid rgba(167,139,250,0.2);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 900; color: var(--accent);
+      margin-top: 1px;
+    }
+    .step-body strong { display: block; font-size: 0.9rem; font-weight: 700; margin-bottom: 2px; }
+    .step-body span   { font-size: 0.76rem; color: var(--text-muted); line-height: 1.5; }
+  </style>
+</head>
+<body>
+
+<div class="ambient"></div>
+<div class="landing-root">
+
+  <!-- Header -->
+  <header class="land-header fade-up">
+    <div class="land-logo">
+      <div class="lico">🎓</div>
+      <span>Student <span class="grad-text">Pocket Filler</span></span>
+    </div>
+    <div class="land-trust">🔒 100% Secure</div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero fade-up" style="animation-delay:.08s">
+    <div class="hero-eyebrow">✅ Paying students since 2024</div>
+    <h1>Turn 20 minutes into<br><span class="grad-text">real rupees.</span></h1>
+    <p>Fill surveys from your phone. We pay you <strong>50% of every survey</strong> — directly to your UPI. No gatekeeping, no waiting weeks.</p>
+
+    <div class="proof-bar">
+      <div class="proof-pill">
+        <div>
+          <div class="val grad-text">50%</div>
+          <div class="lbl">You Keep</div>
+        </div>
+      </div>
+      <div class="proof-pill">
+        <div>
+          <div class="val" style="color:var(--green)">₹131+</div>
+          <div class="lbl">Per Survey</div>
+        </div>
+      </div>
+      <div class="proof-pill">
+        <div>
+          <div class="val">24h</div>
+          <div class="lbl">Pay Time</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Auth card -->
+  <div class="auth-card fade-up" style="animation-delay:.14s">
+    <div class="auth-card-inner">
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-login"  onclick="switchTab('login')">Log in</button>
+        <button class="auth-tab"        id="tab-signup" onclick="switchTab('signup')">Sign up free</button>
+      </div>
+
+      <div class="auth-body">
+        <!-- LOGIN -->
+        <div class="panel active" id="panel-login">
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input class="form-input" type="email" id="login-email" placeholder="you@college.edu" autocomplete="email" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input class="form-input" type="password" id="login-pass" placeholder="Your password"
+                   autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" />
+          </div>
+          <button class="btn-auth" id="btn-login" onclick="doLogin()">Continue →</button>
+          <p class="auth-switch">New here? <a onclick="switchTab('signup')">Create free account</a></p>
+        </div>
+
+        <!-- SIGNUP -->
+        <div class="panel" id="panel-signup">
+          <div class="form-group">
+            <label class="form-label">Your Name</label>
+            <input class="form-input" type="text" id="su-name" placeholder="Rahul Kumar" autocomplete="name" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input class="form-input" type="email" id="su-email" placeholder="you@college.edu" autocomplete="email" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">WhatsApp Number</label>
+            <input class="form-input" type="tel" id="su-phone" placeholder="+91 9876543210" autocomplete="tel" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">College</label>
+            <input class="form-input" type="text" id="su-college" placeholder="e.g. PSG Tech, Coimbatore" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password <span style="color:var(--text-faint);text-transform:none;font-weight:500">(min 6 chars)</span></label>
+            <input class="form-input" type="password" id="su-pass" placeholder="Create a password" autocomplete="new-password" />
+          </div>
+          <button class="btn-auth" id="btn-signup" onclick="doSignup()">Start Earning →</button>
+          <p class="auth-switch">Already have an account? <a onclick="switchTab('login')">Log in</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- How it works -->
+  <section class="how-section fade-up" style="animation-delay:.2s">
+    <div class="how-label">How it works</div>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <strong>Sign up in 30 seconds</strong>
+        <span>Name, college email, done. No KYC, no documents.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <strong>Pick a survey and start</strong>
+        <span>Quick (2 min) to Mega (30 min). You pick based on how much time you have.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <strong>Submit your completion code</strong>
+        <span>After finishing, paste your code in the app. We verify it manually.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <strong>Money lands in your UPI</strong>
+        <span>Usually within 24 hours. No hidden cuts beyond the 50/50 split.</span>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="js/app.js"></script>
+<script src="js/api.js"></script>
+<script>
+  // Redirect if already logged in
+  (async () => {
+    if (localStorage.getItem('spf_token')) {
+      try {
+        const u = await API.me();
+        window.location.href = u.role === 'admin' ? 'admin.html' : 'dashboard.html';
+      } catch { localStorage.removeItem('spf_token'); }
+    }
+  })();
+
+  function switchTab(tab) {
+    document.getElementById('panel-login').classList.toggle('active', tab === 'login');
+    document.getElementById('panel-signup').classList.toggle('active', tab === 'signup');
+    document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+    document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
+  }
+
+  async function doLogin() {
+    const email = document.getElementById('login-email').value.trim();
+    const pass  = document.getElementById('login-pass').value;
+    if (!email || !pass) { showToast('Please fill in both fields'); return; }
+
+    const btn = document.getElementById('btn-login');
+    btn.disabled = true; btn.textContent = 'Logging in…';
+    try {
+      const { user, token } = await API.login({ email, password: pass });
+      saveToken(token);
+      showToast(`Welcome back, ${user.name.split(' ')[0]}! 🎉`);
+      setTimeout(() => { window.location.href = user.role === 'admin' ? 'admin.html' : 'dashboard.html'; }, 600);
+    } catch (err) {
+      showToast(err.message);
+      btn.disabled = false; btn.textContent = 'Continue →';
+    }
+  }
+
+  async function doSignup() {
+    const name    = document.getElementById('su-name').value.trim();
+    const email   = document.getElementById('su-email').value.trim();
+    const phone   = document.getElementById('su-phone').value.trim();
+    const college = document.getElementById('su-college').value.trim();
+    const pass    = document.getElementById('su-pass').value;
+
+    if (!name || !email || !phone || !college || !pass) { showToast('Please fill in all fields'); return; }
+    if (pass.length < 6) { showToast('Password needs at least 6 characters'); return; }
+
+    const btn = document.getElementById('btn-signup');
+    btn.disabled = true; btn.textContent = 'Creating account…';
+    try {
+      const { user, token } = await API.register({ name, email, password: pass, phone, college });
+      saveToken(token);
+      showToast(`You're in! Welcome, ${user.name.split(' ')[0]} 🎉`);
+      setTimeout(() => { window.location.href = 'dashboard.html'; }, 700);
+    } catch (err) {
+      showToast(err.message);
+      btn.disabled = false; btn.textContent = 'Start Earning →';
+    }
+  }
+</script>
+</body>
+</html>
