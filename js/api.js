@@ -7,7 +7,7 @@
 // ── CONFIG ────────────────────────────────────────────────────
 // Replace 'YOUR-APP-NAME' with your actual Render app name.
 // Find it at: https://dashboard.render.com → your Web Service → URL
-const RENDER_URL = 'https://YOUR-APP-NAME.onrender.com';
+const RENDER_URL = 'https://student-pocketfiller.onrender.com';
 
 const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   ? 'http://localhost:3001'
